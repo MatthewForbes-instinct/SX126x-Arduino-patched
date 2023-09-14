@@ -563,8 +563,8 @@ void RadioInit(RadioEvents_t *events)
 	// Initialize driver timeout timers
 	TxTimeoutTimer.oneShot = true;
 	RxTimeoutTimer.oneShot = true;
-	TimerInit(&TxTimeoutTimer, RadioOnTxTimeoutIrq);
-	TimerInit(&RxTimeoutTimer, RadioOnRxTimeoutIrq);
+	TimerInit(&TxTimeoutTimer, RadioOnTxq);
+	TimerInit(&RxTimeoutTimer, RadioOnRxq);
 
 	IrqFired = false;
 }
@@ -577,8 +577,8 @@ void RadioReInit(RadioEvents_t *events)
 	// Initialize driver timeout timers
 	TxTimeoutTimer.oneShot = true;
 	RxTimeoutTimer.oneShot = true;
-	TimerInit(&TxTimeoutTimer, RadioOnTxTimeoutIrq);
-	TimerInit(&RxTimeoutTimer, RadioOnRxTimeoutIrq);
+	TimerInit(&TxTimeoutTimer, RadioOnTxq);
+	TimerInit(&RxTimeoutTimer, RadioOnRxq);
 
 	IrqFired = false;
 }
@@ -1232,6 +1232,14 @@ void RadioOnTxTimeoutIrq(void)
 	TimerTxTimeout = true;
 	BoardEnableIrq();
 	TimerStop(&TxTimeoutTimer);
+#if defined NRF52_SERIES || defined ESP32
+	// Wake up LoRa event handler on nRF52 and ESP32
+	xSemaphoreGiveFromISR(_lora_sem, &xHigherPriorityTaskWoken);
+	if (xHigherPriorityTaskWoken == pdTRUE)
+	{
+		portYIELD_FROM_ISR();
+	}
+#endif
 }
 
 void RadioOnRxTimeoutIrq(void)
@@ -1244,6 +1252,14 @@ void RadioOnRxTimeoutIrq(void)
 	TimerRxTimeout = true;
 	BoardEnableIrq();
 	TimerStop(&RxTimeoutTimer);
+#if defined NRF52_SERIES || defined ESP32
+	// Wake up LoRa event handler on nRF52 and ESP32
+	xSemaphoreGiveFromISR(_lora_sem, &xHigherPriorityTaskWoken);
+	if (xHigherPriorityTaskWoken == pdTRUE)
+	{
+		portYIELD_FROM_ISR();
+	}
+#endif
 }
 
 #if defined NRF52_SERIES || defined ESP32
@@ -1266,6 +1282,10 @@ void RadioOnDioIrq(void)
 #if defined NRF52_SERIES || defined ESP32
 	// Wake up LoRa event handler on nRF52 and ESP32
 	xSemaphoreGiveFromISR(_lora_sem, &xHigherPriorityTaskWoken);
+	if (xHigherPriorityTaskWoken == pdTRUE)
+	{
+		portYIELD_FROM_ISR();
+	}
 #endif
 #ifdef ARDUINO_ARCH_RP2040
 	// Wake up LoRa event handler on RP2040
