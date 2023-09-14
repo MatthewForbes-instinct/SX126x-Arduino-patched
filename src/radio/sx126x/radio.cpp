@@ -563,8 +563,8 @@ void RadioInit(RadioEvents_t *events)
 	// Initialize driver timeout timers
 	TxTimeoutTimer.oneShot = true;
 	RxTimeoutTimer.oneShot = true;
-	TimerInit(&TxTimeoutTimer, RadioOnTxq);
-	TimerInit(&RxTimeoutTimer, RadioOnRxq);
+	TimerInit(&TxTimeoutTimer, RadioOnTxTimeoutIrq);
+	TimerInit(&RxTimeoutTimer, RadioOnRxTimeoutIrq);
 
 	IrqFired = false;
 }
@@ -577,8 +577,8 @@ void RadioReInit(RadioEvents_t *events)
 	// Initialize driver timeout timers
 	TxTimeoutTimer.oneShot = true;
 	RxTimeoutTimer.oneShot = true;
-	TimerInit(&TxTimeoutTimer, RadioOnTxq);
-	TimerInit(&RxTimeoutTimer, RadioOnRxq);
+	TimerInit(&TxTimeoutTimer, RadioOnTxTimeoutIrq);
+	TimerInit(&RxTimeoutTimer, RadioOnRxTimeoutIrq);
 
 	IrqFired = false;
 }
