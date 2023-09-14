@@ -1222,6 +1222,12 @@ uint32_t RadioGetWakeupTime(void)
 	}
 }
 
+#if defined NRF52_SERIES || defined ESP32
+/** Semaphore used by SX126x IRQ handler to wake up LoRaWAN task */
+extern SemaphoreHandle_t _lora_sem;
+static BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+#endif
+
 void RadioOnTxTimeoutIrq(void)
 {
 	// if ((RadioEvents != NULL) && (RadioEvents->TxTimeout != NULL))
@@ -1261,12 +1267,6 @@ void RadioOnRxTimeoutIrq(void)
 	}
 #endif
 }
-
-#if defined NRF52_SERIES || defined ESP32
-/** Semaphore used by SX126x IRQ handler to wake up LoRaWAN task */
-extern SemaphoreHandle_t _lora_sem;
-static BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-#endif
 
 #if defined(ESP8266)
 void ICACHE_RAM_ATTR RadioOnDioIrq(void)
